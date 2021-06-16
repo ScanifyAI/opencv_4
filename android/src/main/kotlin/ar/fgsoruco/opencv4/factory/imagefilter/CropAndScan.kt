@@ -1,19 +1,15 @@
 package ar.fgsoruco.opencv4.factory.imagefilter
 
-import android.R.attr
-import android.R.attr.height
-import android.R.attr.width
+
+import android.R.attr.bitmap
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import io.flutter.plugin.common.MethodChannel
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.*
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
-import java.io.InputStream
 
 
 class CropAndScan {
@@ -21,9 +17,12 @@ class CropAndScan {
         fun process(pathString: String, tl_x: Double, tl_y: Double, tr_x: Double, tr_y: Double, bl_x: Double, bl_y: Double, br_x: Double, br_y: Double, result: MethodChannel.Result) {
 
             try {
+
                 if (OpenCVLoader.initDebug()) {
                     println("LOGX ==> Init Opencv")
                     var bitmap = BitmapFactory.decodeFile(pathString)
+                    val height: Int = bitmap.getHeight()
+                    val width: Int = bitmap.getWidth()
                     val mat = Mat()
                     Utils.bitmapToMat(bitmap, mat)
                     Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2GRAY)
