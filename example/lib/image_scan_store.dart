@@ -75,6 +75,22 @@ class ImageScanStore {
       // }
 
       // END
+
+      // var teste = await Cv2.cropAndscan(
+      //   pathString: file.path,
+      //   tlX: tlX,
+      //   tlY: tlY,
+      //   trX: trX,
+      //   trY: trY,
+      //   blX: blX,
+      //   blY: blY,
+      //   brX: brX,
+      //   brY: brY,
+      // );
+      // log('LOGX ==> [$teste]');
+      // currentFileBytes = await file.readAsBytes();
+      // TODO devolver depois dos testes
+
       var _byte = await Cv2.cropAndscan(
         pathString: file.path,
         tlX: tlX,
@@ -89,7 +105,7 @@ class ImageScanStore {
       currentFileBytes = _byte!;
       return true;
     } catch (e) {
-      log('LOX ==> [$e]');
+      log('LOX !==> [$e]');
       return false;
     }
   }

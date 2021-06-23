@@ -30,6 +30,7 @@ class CropAndScan {
                     Imgproc.GaussianBlur(mat, mat, Size(5.0, 5.0), 0.0)
                     val src_mat = Mat(4, 1, CvType.CV_32FC2)
                     val dst_mat = Mat(4, 1, CvType.CV_32FC2)
+                    src_mat.put
                     src_mat.put(0, 0, tl_x, tl_y, tr_x, tr_y, bl_x, bl_y, br_x, br_y)
                     dst_mat.put(0, 0, 0.0, 0.0, width.toDouble(), 0.0, 0.0, height.toDouble(), width.toDouble(), height.toDouble())
                     val perspectiveTransform = Imgproc.getPerspectiveTransform(src_mat, dst_mat)

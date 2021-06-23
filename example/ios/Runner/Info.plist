@@ -41,5 +41,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>pedimos permissão para abrir sua biblioteca de imagens para que você possa escolher sua foto de contato, além de criar e enviar conteúdos pelo app. </string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>pedimos permissão para abrir sua biblioteca de imagens para que você possa escolher sua foto de contato, além de criar e enviar conteúdos pelo app. </string>
 </dict>
 </plist>
