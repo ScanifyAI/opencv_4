@@ -49,8 +49,6 @@
         double br_x = [call.arguments[@"br_x"] doubleValue];
         double br_y = [call.arguments[@"br_y"] doubleValue];
         
-        NSLog(@"LOGX1 ==> %@", pathString);
-        
         int bytesInFile;
         const char * command;
 
@@ -160,6 +158,9 @@
         NSData* imgConvert = UIImageJPEGRepresentation(finalImage, 1);
         
         result([FlutterStandardTypedData typedDataWithBytes: imgConvert]);
+        
+//        [CropAndScanFactory pathString:pathString tl_x:tl_x tl_y:tl_y tr_x:tr_x tr_y:tr_y bl_x:bl_x bl_y:bl_y br_x:br_x br_y:br_y result:result];
+
 
     }
     //Module: Image Filtering
