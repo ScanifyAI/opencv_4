@@ -50,18 +50,10 @@
         double br_y = [call.arguments[@"br_y"] doubleValue];
         
         NSLog(@"LOGX1 ==> %@", pathString);
-        // CODIGO DE CROP
         
-        
-        // NOTE convertendo a url da imagem na arquivo
         int bytesInFile;
         const char * command;
-       // std::vector<uint8_t> fileData;
-        double height,width;
 
-        CGImageRef image;
-        
-        
         command = [pathString cStringUsingEncoding:NSUTF8StringEncoding];
         
         FILE* file = fopen(command, "rb");
@@ -77,113 +69,97 @@
         
         UIImage *img = [[UIImage alloc] initWithData:imgOriginal];
         
-        //
-        CFDataRef file_data_ref = CFDataCreateWithBytesNoCopy(NULL, file_data.data(),
-                                                              bytesInFile,
-                                                              kCFAllocatorNull);
-        
-        CGDataProviderRef image_provider = CGDataProviderCreateWithCFData(file_data_ref);
-        image = CGImageCreateWithJPEGDataProvider(image_provider, NULL, true,
-                                                  kCGRenderingIntentDefault);
-        
-
-        // NOTE pega altura e largura
-        width = img.size.width;
-        height = img.size.height;
-        NSLog(@"LOGX W ==> %f",width);
-        NSLog(@"LOGX H ==> %f",height);
-       // CGFloat cols = CGImageGetWidth(image);
-       // CGFloat rows = CGImageGetHeight(image);
-        cv::Mat src(height, width, CV_8UC4); // 8 bits per component, 4 channels (color channels + alpha)
-//        NSLog(@"LOGX cols ==> %f", cols);
-//        NSLog(@"LOGX rows ==> %f", rows);
-        //Utils.bitmapToMat(bitmap, mat) ??
-      
-        
-        CGContextRef contextRef = CGBitmapContextCreate(src.data,                 // Pointer to  data
-                                                        width,                       // Width of bitmap
-                                                        height,                       // Height of bitmap
-                                                         8,                          // Bits per component
+        CGColorSpaceRef colorSpace = CGImageGetColorSpace(img.CGImage);
+         CGFloat cols = img.size.width;
+         CGFloat rows = img.size.height;
+         cv::Mat src(rows, cols, CV_8UC4); // 8 bits per component, 4 channels (color channels + alpha)
+         CGContextRef contextRef = CGBitmapContextCreate(src.data,                 // Pointer to  data
+                                                        cols,                       // Width of bitmap
+                                                        rows,                       // Height of bitmap
+                                                        8,                          // Bits per component
                                                          src.step[0],              // Bytes per row
-                                                        CGColorSpaceCreateDeviceGray(),                 // Colorspace
-                                                         kCGImageAlphaNoneSkipLast |
-                                                         kCGBitmapByteOrderDefault);
-        // NOTE se for null retorna a imagem original
-        if(contextRef == NULL){
-            result([FlutterStandardTypedData typedDataWithBytes: imgOriginal]);
-        } else {
-            // Bitmap info flags
-            CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), image);
-            CGContextRelease(contextRef);
-           // CFRelease(image);
-            CFRelease(image_provider);
-            CFRelease(file_data_ref);
-            
-            //cv::Mat mat = cv::Mat(rows, cols, CV_8UC4);
-
+                                                        colorSpace,                 // Colorspace
+                                                        kCGImageAlphaNoneSkipLast |
+                                                        kCGBitmapByteOrderDefault); // Bitmap info flags
+         CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), img.CGImage);
+         CGContextRelease(contextRef);
         
-            
-      
-         //   cv::utils::get
-            cv::Mat srcBlur;
-            cv::Mat srcGray;
-            cv::cvtColor(src, srcGray, cv::COLOR_BGRA2BGR);
-            cv::GaussianBlur(srcGray, srcBlur, cv::Size(5.0, 5.0), 0.0);
-            
-                
+        cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(src, src, cv::Size(5.0, 5.0), 0.0);
         
-            cv::Mat src_mat = cv::Mat(4, 1, CV_32FC2);
-            cv::Mat dst_mat = cv::Mat(4, 1, CV_32FC2);
+        CGFloat w1 = sqrt( pow(br_x - bl_x , 2) + pow(br_x - bl_x, 2));
+        CGFloat w2 = sqrt( pow(tr_x - tl_x , 2) + pow(tr_x - tl_x, 2));
+
+        CGFloat h1 = sqrt( pow(tr_y - br_y , 2) + pow(tr_y - bl_y, 2));
+        CGFloat h2 = sqrt( pow(tl_y - bl_y , 2) + pow(tl_y - bl_y, 2));
+
+        CGFloat maxWidth = (w1 < w2) ? w1 : w2;
+        CGFloat maxHeight = (h1 < h2) ? h1 : h2;
                 
-           // src_mat.
-            // TODO ficou faltando
-            //   src_mat.put(0, 0, tl_x, tl_y, tr_x, tr_y, bl_x, bl_y, br_x, br_y)
-            //   dst_mat.put(0, 0, 0.0, 0.0, width.toDouble(), 0.0, 0.0, height.toDouble(), width.toDouble(), height.toDouble())
-           cv::Mat perspectiveTransform =  cv::getPerspectiveTransform(src_mat, dst_mat);
-           // TODO ficou faltando   Imgproc.warpPerspective(mat, mat, perspectiveTransform, Size(width.toDouble(), height.toDouble()))
-            cv::Mat srcWrap;
-            cv::Mat srcThre;
-            cv::warpPerspective(srcBlur, srcWrap,perspectiveTransform, cv::Size(width,height));
-            //cv::adaptiveThreshold(srcWrap, srcThre, 255.0, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 401, 14.0);
+        cv::Point2f src_mat[4], dst_mat[4];
+        src_mat[0].x = tl_x;
+        src_mat[0].y = tl_y;
+        src_mat[1].x = tr_x;
+        src_mat[1].y = tr_y;
+        src_mat[2].x = br_x;
+        src_mat[2].y = br_y;
+        src_mat[3].x = bl_x;
+        src_mat[3].y = bl_y;
 
-            
-          //  cv::Mat blurred = cv::Mat();
-         //   cv::GaussianBlur(srcThre, blurred, cv::Size(5.0, 5.0), 0.0);
-
-            cv::Mat result1 = cv::Mat();
-            
-         //   cv::addWeighted(blurred, 0.5, srcThre,0.5, 1.0,result1);
-                
-            // TODO faltou implementar       Utils.matToBitmap(result1, bitmap)
-            NSData *data = [NSData dataWithBytes:result1.data length:result1.elemSize()*result1.total()];
-
-            CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-
-            CGImageRef imageRef = CGImageCreate(2480,                                 //width
-                                                3508,                                 //height
-                                               8,                                          //bits per component
-                                               8 * result1.elemSize(),                       //bits per pixel
-                                                result1.step[0],                            //bytesPerRow
-                                                CGColorSpaceCreateDeviceGray(),                                 //colorspace
-                                               kCGImageAlphaNone|kCGBitmapByteOrderDefault,// bitmap info
-                                               provider,                                   //CGDataProviderRef
-                                               NULL,                                       //decode
-                                               false,                                      //should interpolate
-                                               kCGRenderingIntentDefault                   //intent
-                                               );
-            // Getting UIImage from CGImage
-            UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
-            CGImageRelease(imageRef);
-            CGDataProviderRelease(provider);
-
-            NSData*   imgConvert = UIImageJPEGRepresentation(finalImage, 1);
-          
-         
-            result([FlutterStandardTypedData typedDataWithBytes: imgConvert]);
-        }
-       
-        // END
+        dst_mat[0].x = 0;
+        dst_mat[0].y = 0;
+        dst_mat[1].x = maxWidth - 1;
+        dst_mat[1].y = 0;
+        dst_mat[2].x = maxWidth - 1;
+        dst_mat[2].y = maxHeight - 1;
+        dst_mat[3].x = 0;
+        dst_mat[3].y = maxHeight - 1;
         
+        cv::Mat perspectiveTransform =  cv::getPerspectiveTransform(src_mat, dst_mat);
+        
+        cv::warpPerspective(src, src, perspectiveTransform, cv::Size(maxWidth,maxHeight));
+        
+        cv::adaptiveThreshold(src, src, 255.0, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 401, 14.0);
+
+        cv::Mat blurred = cv::Mat();
+        cv::GaussianBlur(src, blurred, cv::Size(5.0, 5.0), 0.0);
+        
+        cv::Mat result1 = cv::Mat();
+        
+        cv::addWeighted(blurred, 0.5, src,0.5, 1.0, result1);
+            
+        NSData *data = [NSData dataWithBytes:result1.data length:result1.elemSize()*result1.total()];
+        
+        CGColorSpaceRef finalColorSpace;
+        
+         if (result1.elemSize() == 1) {
+             finalColorSpace = CGColorSpaceCreateDeviceGray();
+         } else {
+             finalColorSpace = CGColorSpaceCreateDeviceRGB();
+         }
+         CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
+         // Creating CGImage from cv::Mat
+         CGImageRef imageRef = CGImageCreate(result1.cols,                                 //width
+                                             result1.rows,                                 //height
+                                            8,                                          //bits per component
+                                            8 * result1.elemSize(),                       //bits per pixel
+                                             result1.step[0],                            //bytesPerRow
+                                             finalColorSpace,                                 //colorspace
+                                            kCGImageAlphaNone|kCGBitmapByteOrderDefault,// bitmap info
+                                            provider,                                   //CGDataProviderRef
+                                            NULL,                                       //decode
+                                            false,                                      //should interpolate
+                                            kCGRenderingIntentDefault                   //intent
+                                            );
+         // Getting UIImage from CGImage
+         UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
+         CGImageRelease(imageRef);
+         CGDataProviderRelease(provider);
+         CGColorSpaceRelease(finalColorSpace);
+        
+        NSData* imgConvert = UIImageJPEGRepresentation(finalImage, 1);
+        
+        result([FlutterStandardTypedData typedDataWithBytes: imgConvert]);
 
     }
     //Module: Image Filtering
