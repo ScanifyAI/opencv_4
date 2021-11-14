@@ -298,6 +298,8 @@ class Opencv4Plugin : FlutterPlugin, MethodCallHandler {
                             call.argument<Int>("thresholdType") as Int,
                             call.argument<Int>("blockSize") as Int,
                             call.argument<Double>("constantValue") as Double,
+                            call.argument<Int>("width") as Int,
+                            call.argument<Int>("height") as Int,
                             result)
                 } catch (e: Exception) {
                     result.error("OpenCV-Error", "Android: " + e.message, e)

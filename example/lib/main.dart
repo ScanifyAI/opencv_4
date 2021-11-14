@@ -7,6 +7,7 @@ import 'package:opencv_4/factory/pathfrom.dart';
 import 'package:opencv_4/opencv_4.dart';
 //uncomment when image_picker is installed
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as im;
 
 void main() {
   runApp(MyApp());
@@ -57,13 +58,23 @@ class _MyHomePageState extends State<MyHomePage> {
   }) async {
     try {
       //test with threshold
-      _byte = await Cv2.threshold(
-        pathFrom: pathFrom,
-        pathString: pathString,
-        maxThresholdValue: maxThresholdValue,
-        thresholdType: thresholdType,
-        thresholdValue: thresholdValue,
-      );
+      var image = im.decodeImage(File(pathString).readAsBytesSync())!;
+
+      _byte = await Cv2.adaptiveThreshold(
+          pathFrom: pathFrom,
+          pathString: pathString,
+          thresholdType: thresholdType,
+          constantValue: 30,
+          blockSize: 19,
+          adaptiveMethod: Cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+          maxValue: 255,
+          buffer: image.getBytes(format: im.Format.rgba),
+          height: image.height,
+          width: image.width);
+      var retImage = im.Image.fromBytes(image.width, image.height, _byte!,
+          format: im.Format.luminance);
+      //retImage = im.copyResize(retImage, width: 100, height: 100);
+      _byte = Uint8List.fromList(im.encodeJpg(retImage));
 
       setState(() {
         _byte;
@@ -99,8 +110,9 @@ class _MyHomePageState extends State<MyHomePage> {
     if (pickedFile == null) return;
 
     _image = File(pickedFile.path);
+
     testOpenCV(
-      pathFrom: CVPathFrom.GALLERY_CAMERA,
+      pathFrom: CVPathFrom.RGBA_BUFFER,
       pathString: _image!.path,
       thresholdValue: 150,
       maxThresholdValue: 200,
@@ -163,7 +175,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                         ),
-                        Visibility(maintainAnimation: true, maintainState: true, visible: _visible, child: Container(child: CircularProgressIndicator())),
+                        Visibility(
+                            maintainAnimation: true,
+                            maintainState: true,
+                            visible: _visible,
+                            child:
+                                Container(child: CircularProgressIndicator())),
                         SizedBox(
                           width: MediaQuery.of(context).size.width - 40,
                           child: TextButton(

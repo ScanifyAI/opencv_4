@@ -13,15 +13,17 @@ import 'package:opencv_4/factory/utils.dart';
 class AdaptiveThresholdFactory {
   static const platform = const MethodChannel('opencv_4');
 
-  static Future<Uint8List?> adaptiveThreshold({
-    required CVPathFrom pathFrom,
-    required String pathString,
-    required double maxValue,
-    required int adaptiveMethod,
-    required int thresholdType,
-    required int blockSize,
-    required double constantValue,
-  }) async {
+  static Future<Uint8List?> adaptiveThreshold(
+      {required CVPathFrom pathFrom,
+      required String pathString,
+      required double maxValue,
+      required int adaptiveMethod,
+      required int thresholdType,
+      required int blockSize,
+      required double constantValue,
+      int width: 0,
+      int height: 0,
+      Uint8List? buffer}) async {
     File _file;
     Uint8List _fileAssets;
 
@@ -76,6 +78,21 @@ class AdaptiveThresholdFactory {
           'thresholdType': thresholdTypeTemp,
           'blockSize': blockSize,
           'constantValue': constantValue
+        });
+        break;
+      case CVPathFrom.RGBA_BUFFER:
+        _fileAssets = buffer!;
+        result = await platform.invokeMethod('adaptiveThreshold', {
+          "pathType": 4,
+          "pathString": '',
+          "data": _fileAssets,
+          'maxValue': maxValue,
+          'adaptiveMethod': adaptiveMethodTemp,
+          'thresholdType': thresholdTypeTemp,
+          'blockSize': blockSize,
+          'constantValue': constantValue,
+          'height': height,
+          'width': width
         });
         break;
     }
